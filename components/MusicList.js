@@ -52,6 +52,21 @@ export default function MusicList() {
     }
   };
 
+  // pause current playing music
+  const pauseMusic = async () => {
+    if (currentSound) {
+      try {
+        const status = await currentSound.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          await currentSound.pauseAsync();
+          setIsPlaying(false);
+        }
+      } catch (error) {
+        console.error("Error stopping current sound:", error);
+      }
+    }
+  };
+
   // get music
   useEffect(() => {
     const getMusic = async () => {
@@ -129,12 +144,10 @@ export default function MusicList() {
 
             {
               // add a button only for the selected song
-              item.id === selectedSongIndex && (
+              item.id === selectedSongIndex && isPlaying && currentSound && (
                 <TouchableOpacity
                   onPress={
-                    isPlaying
-                      ? () => currentSound.pauseAsync()
-                      : () => playMusic(item)
+                    isPlaying ? () => pauseMusic() : () => playMusic(item)
                   }
                   style={styles.pauseBtn}
                 >
@@ -152,7 +165,7 @@ export default function MusicList() {
                     />
                   )}
                 </TouchableOpacity>
-              )
+              ) // end of the button
             }
           </View>
         )}
