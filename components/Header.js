@@ -10,27 +10,25 @@ import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
 
 export default function Header() {
+  const [showSearch, setShowSearch] = useState(false);
+
   return (
     <View style={styles.header}>
       <View style={styles.logo}>
-        <MaterialCommunityIcons name="music-circle" size={60} color="#0bd967" />
-        <Text style={styles.logoText}>PlayMs</Text>
+        <MaterialCommunityIcons name="music-circle" size={40} color="#0bd967" />
+        <Text style={styles.logoText}>JPlayer</Text>
       </View>
 
       <View style={styles.search}>
-        {/* Search input */}
-        {/* <TextInput
-          style={{
-            backgroundColor: "#fff",
-            width: 200,
-            height: 40,
-            borderRadius: 20,
-            paddingLeft: 20,
-          }}
-          placeholder="Search"
-        /> */}
+        {/* Show search only when the true */}
+        {showSearch && (
+          <TextInput style={styles.searchInput} placeholder="Search" />
+        )}
 
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setShowSearch(!showSearch)}
+          activeOpacity={0.5}
+        >
           <MaterialCommunityIcons name="magnify" size={25} color="#0bd967" />
         </TouchableOpacity>
       </View>
@@ -44,12 +42,8 @@ const styles = StyleSheet.create({
     height: 100,
     backgroundColor: "#2a1c1b",
     elevation: 10,
-    marginVertical: 10,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    elevation: 10,
     padding: 20,
-    pardingTop: 50,
+    pardingTop: 60,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
@@ -74,7 +68,15 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
+    justifyContent: "space-between",
+    backgroundColor: "#330101",
+    padding: 7,
+    borderRadius: 20,
+  },
+
+  searchInput: {
+    width: "50%",
+    color: "#ccc",
+    paddingHorizontal: 10,
   },
 });

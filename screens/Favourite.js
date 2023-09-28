@@ -1,10 +1,18 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { Audio } from "expo-av";
+import { MaterialCommunityIcons } from "react-native-vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-import MusicList from "../components/MusicList";
+import FavList from "../components/FavList";
 
-export default function HomeScreen() {
+export default function MusicList() {
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -14,7 +22,7 @@ export default function HomeScreen() {
         start={{ x: 1, y: 1 }}
         end={{ x: 1, y: 0 }}
       >
-        <MusicList />
+        <FavList />
       </LinearGradient>
     </View>
   );

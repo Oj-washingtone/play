@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
 
 export default function Player() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sound, setSound] = useState();
+  const [shuffle, setShuffle] = useState(false);
+  const [repeat, setRepeat] = useState(false);
+  const [selectedSongIndex, setSelectedSongIndex] = useState(null);
+
 
   const togglePlayback = async () => {
     setIsPlaying(!isPlaying);
@@ -36,11 +40,19 @@ export default function Player() {
       </View>
       <View style={styles.musicActions}>
         <View style={styles.audioIconWrapper}>
-          <MaterialCommunityIcons name="music-note" size={24} color="#0bd967" />
+          {isPlaying ? (
+            <Image
+              source={require("../assets/soundwave/wave.gif")}
+              style={{ width: 40, height: 40 }}
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="music-note"
+              size={24}
+              color="#0bd967"
+            />
+          )}
         </View>
-        {/* <TouchableOpacity>
-        <Text style={{ color: "#fff" }}>Song name</Text>
-      </TouchableOpacity> */}
 
         <View style={styles.actions}>
           <TouchableOpacity>
@@ -78,11 +90,35 @@ export default function Player() {
           <TouchableOpacity>
             <MaterialCommunityIcons name="skip-next" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialCommunityIcons name="replay" size={24} color="#fff" />
+          <TouchableOpacity onPress={() => setRepeat(!repeat)}>
+            {repeat ? (
+              <MaterialCommunityIcons name="replay" size={24} color="#0bd967" />
+            ) : (
+              <MaterialCommunityIcons name="replay" size={24} color="#fff" />
+            )}
           </TouchableOpacity>
         </View>
       </View>
+      {/* Floating action button */}
+      <TouchableOpacity
+        style={[styles.floatingActionButton]}
+        onPress={() => setShuffle(!shuffle)}
+        activeOpacity={1}
+      >
+        {shuffle ? (
+          <MaterialCommunityIcons
+            name="shuffle-variant"
+            size={24}
+            color="#0bd967"
+          />
+        ) : (
+          <MaterialCommunityIcons
+            name="shuffle-variant"
+            size={24}
+            color="#fff"
+          />
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
@@ -151,6 +187,20 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 50,
     backgroundColor: "#0bd967",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 10,
+  },
+
+  floatingActionButton: {
+    position: "absolute",
+    bottom: 70,
+    right: 10,
+    width: 60,
+    height: 60,
+    backgroundColor: "#000",
+    borderRadius: 50,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

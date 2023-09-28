@@ -8,107 +8,65 @@ import {
 } from "react-native";
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
-// import { getMusicFiles } from "../utils/music"; // Import the updated helper function
+import * as MediaLibrary from "expo-media-library";
+//import { getMusicFiles } from "../utils/music"; // Import the updated helper function
+
+import Player from "./Player";
 
 export default function MusicList() {
-  const [musicFiles, setMusicFiles] = useState([
-    // use dummy data for now
-    {
-      id: "1",
-      title: "Song 1",
-      uri: "file:///storage/emulated/0/Music/Song1.mp3",
-    },
-    {
-      id: "2",
-      title: "Song 2",
-      uri: "file:///storage/emulated/0/Music/Song2.mp3",
-    },
-    {
-      id: "3",
-      title: "Song 3",
-      uri: "file:///storage/emulated/0/Music/Song3.mp3",
-    },
-    {
-      id: "4",
-      title: "Song 4",
-      uri: "file:///storage/emulated/0/Music/Song4.mp3",
-    },
-    {
-      id: "5",
-      title: "Song 5",
-      uri: "file:///storage/emulated/0/Music/Song5.mp3",
-    },
-    {
-      id: "6",
-      title: "Song 6",
-      uri: "file:///storage/emulated/0/Music/Song6.mp3",
-    },
-    {
-      id: "7",
-      title: "Song 7",
-      uri: "file:///storage/emulated/0/Music/Song7.mp3",
-    },
-    {
-      id: "8",
-      title: "Song 8",
-      uri: "file:///storage/emulated/0/Music/Song8.mp3",
-    },
-    {
-      id: "9",
-      title: "Song 9",
-      uri: "file:///storage/emulated/0/Music/Song9.mp3",
-    },
-
-    {
-      id: "10",
-      title: "Song 10",
-      uri: "file:///storage/emulated/0/Music/Song10.mp3",
-    },
-    {
-      id: "11",
-      title: "Song 11",
-      uri: "file:///storage/emulated/0/Music/Song11.mp3",
-    },
-    {
-      id: "12",
-      title: "Song 12",
-      uri: "file:///storage/emulated/0/Music/Song12.mp3",
-    },
-    {
-      id: "13",
-      title: "Song 13",
-      uri: "file:///storage/emulated/0/Music/Song13.mp3",
-    },
-    {
-      id: "14",
-      title: "Song 14",
-      uri: "file:///storage/emulated/0/Music/Song13.mp3",
-    },
-
-    {
-      id: "15",
-      title: "Song 15",
-      uri: "file:///storage/emulated/0/Music/Song13.mp3",
-    },
-  ]);
+  const [musicFiles, setMusicFiles] = useState([]);
   const [sound, setSound] = useState();
+  const [sendToFavourite, setFavouriteIconForItem] = useState(false);
+  const [currentSound, setCurrentSound] = useState(null);
+  const [selectedSongIndex, setSelectedSongIndex] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  //   useEffect(() => {
-  //     const fetchMusic = async () => {
-  //       const music = await getMusicFiles();
-  //       setMusicFiles(music);
-  //     };
+  const playMusic = async (music) => {
+    setSelectedSongIndex(music.id);
 
-  //     fetchMusic();
-  //   }, []);
+    if (currentSound) {
+      try {
+        const status = await currentSound.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          await currentSound.stopAsync();
+          setIsPlaying(false);
+        }
+      } catch (error) {
+        console.error("Error stopping current sound:", error);
+      }
+    }
 
-  //   const playMusic = async (music) => {
-  //     const { sound } = await Audio.Sound.createAsync(
-  //       { uri: music.uri },
-  //       { shouldPlay: true }
-  //     );
-  //     setSound(sound);
-  //   };
+    const soundObject = new Audio.Sound();
+
+    try {
+      await soundObject.loadAsync({ uri: music.uri });
+      await soundObject.playAsync();
+      // You can also use await soundObject.setIsLoopingAsync(true); if you want to loop the music.
+
+      // Store the reference to the currently playing sound
+      setCurrentSound(soundObject);
+      setIsPlaying(true);
+    } catch (error) {
+      // Handle any errors that occurred during loading or playing the music.
+      console.error("Error playing music:", error);
+    }
+  };
+
+  // get music
+  useEffect(() => {
+    const getMusic = async () => {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === "granted") {
+        const media = await MediaLibrary.getAssetsAsync({
+          mediaType: "audio",
+        });
+
+        setMusicFiles(media.assets);
+      }
+    };
+
+    getMusic();
+  }, []);
 
   return (
     <View style={styles.musicListWrapper}>
@@ -128,10 +86,22 @@ export default function MusicList() {
               />
             </View>
             <TouchableOpacity
-              // onPress={() => playMusic(item)}
+              onPress={() => playMusic(item)}
               style={styles.musicNameWrapper}
+              onLongPress={() => console.log("Long press")}
+              activeOpacity={0.6}
             >
-              <Text style={styles.songName}>{item.title}</Text>
+              <Text
+                style={[
+                  styles.songName,
+                  {
+                    color:
+                      item.id === selectedSongIndex ? "#0bd967" : "#f2f3f5",
+                  },
+                ]}
+              >
+                {item.filename}
+              </Text>
               <Text style={styles.artistName}>Artist</Text>
             </TouchableOpacity>
             <View style={styles.musicDuration}>
@@ -140,21 +110,56 @@ export default function MusicList() {
                 size={15}
                 color="#ccc"
               />
-              <Text style={styles.duration}>3:00</Text>
+              <Text style={styles.duration}>
+                {`${Math.floor(item.duration / 60)}:${(item.duration % 60)
+                  .toFixed(0)
+                  .padStart(2, "0")}`}
+              </Text>
             </View>
             <TouchableOpacity
             // onPress={() => playMusic(item)}
             >
+              {}
               <MaterialCommunityIcons
                 name="heart-outline"
-                size={24}
+                size={20}
                 color="#ccc"
               />
             </TouchableOpacity>
+
+            {
+              // add a button only for the selected song
+              item.id === selectedSongIndex && (
+                <TouchableOpacity
+                  onPress={
+                    isPlaying
+                      ? () => currentSound.pauseAsync()
+                      : () => playMusic(item)
+                  }
+                  style={styles.pauseBtn}
+                >
+                  {currentSound && isPlaying ? (
+                    <MaterialCommunityIcons
+                      name="pause"
+                      size={24}
+                      color="#0bd967"
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="play"
+                      size={24}
+                      color="#0bd967"
+                    />
+                  )}
+                </TouchableOpacity>
+              )
+            }
           </View>
         )}
         showsVerticalScrollIndicator={false}
       />
+
+      {/* <Player /> */}
     </View>
   );
 }
@@ -191,10 +196,10 @@ const styles = StyleSheet.create({
   },
 
   musicImage: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     backgroundColor: "#ccc",
-    borderRadius: 5,
+    borderRadius: 10,
     marginRight: 10,
     display: "flex",
     alignItems: "center",
@@ -217,5 +222,9 @@ const styles = StyleSheet.create({
   artistName: {
     fontSize: 12,
     color: "#ccc",
+  },
+
+  pauseBtn: {
+    marginLeft: 15,
   },
 });

@@ -1,16 +1,47 @@
 import React, { useEffect, useState } from "react";
 import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  Modal,
+} from "react-native";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import * as MediaLibrary from "expo-media-library";
 
-import MusicList from "./components/MusicList";
-import Player from "./components/Player";
+import Main from "./navigation/MainNavigation";
 import Header from "./components/Header";
+import Player from "./components/Player";
+import PermissionModal from "./components/PermissionsModal";
 
 export default function App() {
   NavigationBar.setButtonStyleAsync("dark");
+
+  const [permission, setPermission] = useState({});
+  const [isPermissionModalVisible, setIsPermissionModalVisible] =
+    useState(false);
+
+  // request permission to access media library
+  const getPermission = async () => {
+    const permission = await MediaLibrary.getPermissionsAsync();
+    setPermission(permission);
+  };
+
+  useEffect(() => {
+    getPermission();
+
+    if (!permission.granted) {
+      setIsPermissionModalVisible(true);
+    }
+  }, []);
+
+  // try {
+
+  // }
 
   return (
     <View style={styles.container}>
@@ -23,14 +54,20 @@ export default function App() {
         end={{ x: 1, y: 0 }}
       >
         <Header />
-        <MusicList />
-        <Player />
+        <View style={styles.content}>
+          <Main />
+        </View>
 
-        {/* Floating action button */}
-        <TouchableOpacity style={styles.floatingActionButton}>
-          <MaterialCommunityIcons name="plus" size={24} color="#fff" />
-        </TouchableOpacity>
+        {/* <MusicList /> */}
       </LinearGradient>
+      <Player />
+
+      {/* {permission.granted && (
+        <PermissionModal
+          visible={isPermissionModalVisible}
+          onRequestClose={() => setIsPermissionModalVisible(false)}
+        />
+      )} */}
     </View>
   );
 }
@@ -40,8 +77,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     width: "100%",
-    // paddingTop: 50,
-    backgroundColor: "#000",
+  },
+
+  content: {
+    flex: 1,
+    width: "100%",
   },
 
   playing: {
@@ -68,20 +108,6 @@ const styles = StyleSheet.create({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-  },
-
-  floatingActionButton: {
-    position: "absolute",
-    bottom: 70,
-    right: 10,
-    width: 60,
-    height: 60,
-    backgroundColor: "#000",
-    borderRadius: 50,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 10,
   },
 
   actionsAndPlayIndicator: {
