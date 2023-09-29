@@ -8,6 +8,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 
 import HomeScreen from "../screens/home";
 import Favourite from "../screens/Favourite";
+import ShazamKit from "../screens/ShazamKit";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -15,6 +16,7 @@ export default function Main() {
   return (
     <NavigationContainer>
       <Tab.Navigator
+        initialRouteName="All"
         screenOptions={({ route }) => ({
           tabBarLabel: ({ focused }) => {
             let label =
@@ -35,6 +37,7 @@ export default function Main() {
           tabBarStyle: { backgroundColor: "#2a1c1b" },
         })}
       >
+        <Tab.Screen name="Find" component={ShazamKit} />
         <Tab.Screen name="All" component={HomeScreen} />
         <Tab.Screen name="Favourite" component={Favourite} />
       </Tab.Navigator>

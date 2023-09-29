@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  Image,
 } from "react-native";
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
@@ -15,7 +16,12 @@ export default function Header() {
   return (
     <View style={styles.header}>
       <View style={styles.logo}>
-        <MaterialCommunityIcons name="music-circle" size={40} color="#0bd967" />
+        {/* <MaterialCommunityIcons name="music-circle" size={40} color="#0bd967" /> */}
+        {/* Logo image */}
+        <Image
+          source={require("../assets/logo.png")}
+          style={{ width: 40, height: 40 }}
+        />
         <Text style={styles.logoText}>JPlayer</Text>
       </View>
 

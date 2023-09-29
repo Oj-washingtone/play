@@ -2,37 +2,84 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
+import { usePlayback } from "../utils/PlaybackContext";
 
 export default function Player() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [sound, setSound] = useState();
-  const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState(false);
-  const [selectedSongIndex, setSelectedSongIndex] = useState(null);
+  const {
+    isPlaying,
+    setIsPlaying,
+    currentSound,
+    setSelectedSongIndex,
+    selectedSongIndex,
+  } = usePlayback();
 
+  const [repeat, setRepeat] = useState(false);
+  const [shuffle, setShuffle] = useState(false);
+  const [playbackPosition, setPlaybackPosition] = useState(0);
+  const [playbackDuration, setPlaybackDuration] = useState(0);
 
   const togglePlayback = async () => {
-    setIsPlaying(!isPlaying);
-    // if (sound) {
-    //   if (isPlaying) {
-    //     await sound.pauseAsync();
-    //   } else {
-    //     await sound.playAsync();
-    //   }
-    //   setIsPlaying(!isPlaying);
-    // }
+    // Toggle playback and control the audio based on the global state
+    if (currentSound) {
+      try {
+        const status = await currentSound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.isPlaying) {
+            await currentSound.pauseAsync();
+          } else {
+            await currentSound.playAsync();
+          }
+          setIsPlaying(!isPlaying);
+        }
+      } catch (error) {
+        console.error("Error handling play/pause:", error);
+      }
+    }
   };
 
   useEffect(() => {
-    return sound
-      ? () => {
-          sound.unloadAsync();
+    if (currentSound) {
+      // Subscribe to audio playback updates to get the current position and duration
+      const playbackStatusSubscription = currentSound.setOnPlaybackStatusUpdate(
+        (status) => {
+          if (status.isLoaded) {
+            setPlaybackPosition(status.positionMillis);
+            setPlaybackDuration(status.durationMillis);
+          }
         }
-      : undefined;
-  }, [sound]);
+      );
+
+      return () => {
+        if (playbackStatusSubscription) {
+          playbackStatusSubscription.remove();
+        }
+      };
+    }
+  }, [currentSound]);
+
+  const formatTime = (millis) => {
+    const totalSeconds = millis / 1000;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   return (
     <View style={styles.playing}>
+      <View style={styles.progress}>
+        <Text style={{ color: "#fff" }}>{formatTime(playbackPosition)}</Text>
+        <View
+          style={{
+            height: 2,
+            backgroundColor: "#0bd967",
+            width: `${(playbackPosition / playbackDuration) * 100}%`,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 70,
+          }}
+        />
+      </View>
       <View style={styles.playingInfo}>
         <Text style={{ color: "#fff", textAlign: "center", marginBottom: 10 }}>
           Song name
@@ -140,7 +187,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     width: "100%",
-    height: 100,
+    height: 140,
     backgroundColor: "#000",
     color: "#fff",
 
@@ -195,7 +242,7 @@ const styles = StyleSheet.create({
 
   floatingActionButton: {
     position: "absolute",
-    bottom: 70,
+    bottom: 110,
     right: 10,
     width: 60,
     height: 60,
@@ -205,5 +252,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     elevation: 10,
+  },
+
+  time: {
+    color: "#fff",
+  },
+
+  // progressBar: {
+  //   width: "80%",
+  //   height: 2,
+  //   backgroundColor: "#fff",
+  // },
+
+  playingInfo: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  songName: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "bold",
+  },
+
+  artistName: {
+    color: "#ccc",
+    fontSize: 12,
+  },
+
+  progress: {
+    width: "84%",
   },
 });

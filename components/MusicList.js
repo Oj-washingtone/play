@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   FlatList,
@@ -9,7 +9,7 @@ import {
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
 import * as MediaLibrary from "expo-media-library";
-//import { getMusicFiles } from "../utils/music"; // Import the updated helper function
+import { usePlayback } from "../utils/PlaybackContext";
 
 import Player from "./Player";
 
@@ -17,9 +17,15 @@ export default function MusicList() {
   const [musicFiles, setMusicFiles] = useState([]);
   const [sound, setSound] = useState();
   const [sendToFavourite, setFavouriteIconForItem] = useState(false);
-  const [currentSound, setCurrentSound] = useState(null);
-  const [selectedSongIndex, setSelectedSongIndex] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+
+  const {
+    isPlaying,
+    setIsPlaying,
+    currentSound,
+    setSelectedSongIndex,
+    selectedSongIndex,
+    setCurrentSound,
+  } = usePlayback();
 
   const playMusic = async (music) => {
     setSelectedSongIndex(music.id);
@@ -41,13 +47,9 @@ export default function MusicList() {
     try {
       await soundObject.loadAsync({ uri: music.uri });
       await soundObject.playAsync();
-      // You can also use await soundObject.setIsLoopingAsync(true); if you want to loop the music.
-
-      // Store the reference to the currently playing sound
       setCurrentSound(soundObject);
       setIsPlaying(true);
     } catch (error) {
-      // Handle any errors that occurred during loading or playing the music.
       console.error("Error playing music:", error);
     }
   };
@@ -82,6 +84,25 @@ export default function MusicList() {
 
     getMusic();
   }, []);
+
+  const togglePlayback = async () => {
+    // Toggle playback and control the audio based on the global state
+    if (currentSound) {
+      try {
+        const status = await currentSound.getStatusAsync();
+        if (status.isLoaded) {
+          if (status.isPlaying) {
+            await currentSound.pauseAsync();
+          } else {
+            await currentSound.playAsync();
+          }
+          setIsPlaying(!isPlaying);
+        }
+      } catch (error) {
+        console.error("Error handling play/pause:", error);
+      }
+    }
+  };
 
   return (
     <View style={styles.musicListWrapper}>
@@ -142,31 +163,26 @@ export default function MusicList() {
               />
             </TouchableOpacity>
 
-            {
-              // add a button only for the selected song
-              item.id === selectedSongIndex && isPlaying && currentSound && (
-                <TouchableOpacity
-                  onPress={
-                    isPlaying ? () => pauseMusic() : () => playMusic(item)
-                  }
-                  style={styles.pauseBtn}
-                >
-                  {currentSound && isPlaying ? (
-                    <MaterialCommunityIcons
-                      name="pause"
-                      size={24}
-                      color="#0bd967"
-                    />
-                  ) : (
-                    <MaterialCommunityIcons
-                      name="play"
-                      size={24}
-                      color="#0bd967"
-                    />
-                  )}
-                </TouchableOpacity>
-              ) // end of the button
-            }
+            {item.id === selectedSongIndex && currentSound && (
+              <TouchableOpacity
+                onPress={togglePlayback}
+                style={styles.pauseBtn}
+              >
+                {currentSound && isPlaying ? (
+                  <MaterialCommunityIcons
+                    name="pause"
+                    size={24}
+                    color="#0bd967"
+                  />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="play"
+                    size={24}
+                    color="#0bd967"
+                  />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         )}
         showsVerticalScrollIndicator={false}

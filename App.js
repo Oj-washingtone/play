@@ -17,6 +17,7 @@ import Main from "./navigation/MainNavigation";
 import Header from "./components/Header";
 import Player from "./components/Player";
 import PermissionModal from "./components/PermissionsModal";
+import { PlaybackProvider } from "./utils/PlaybackContext";
 
 export default function App() {
   NavigationBar.setButtonStyleAsync("dark");
@@ -44,31 +45,33 @@ export default function App() {
   // }
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <LinearGradient
-        // Button Linear Gradient
-        colors={["#261f1f", "#000", "#261f1f"]}
-        style={styles.container}
-        start={{ x: 1, y: 1 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <Header />
-        <View style={styles.content}>
-          <Main />
-        </View>
+    <PlaybackProvider>
+      <View style={styles.container}>
+        <StatusBar style="auto" />
+        <LinearGradient
+          // Button Linear Gradient
+          colors={["#261f1f", "#000", "#261f1f"]}
+          style={styles.container}
+          start={{ x: 1, y: 1 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Header />
+          <View style={styles.content}>
+            <Main />
+          </View>
 
-        {/* <MusicList /> */}
-      </LinearGradient>
-      <Player />
+          {/* <MusicList /> */}
+        </LinearGradient>
+        <Player />
 
-      {/* {permission.granted && (
+        {/* {permission.granted && (
         <PermissionModal
           visible={isPermissionModalVisible}
           onRequestClose={() => setIsPermissionModalVisible(false)}
         />
       )} */}
-    </View>
+      </View>
+    </PlaybackProvider>
   );
 }
 
