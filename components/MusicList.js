@@ -10,13 +10,20 @@ import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "react-native-vector-icons";
 import * as MediaLibrary from "expo-media-library";
 import { usePlayback } from "../utils/PlaybackContext";
+import { useNavigation } from "@react-navigation/native";
 
 import Player from "./Player";
+import BottonSheet from "./BottomSheet";
+import PlayingSongScreen from "../screens/PlayingSongScreen";
 
 export default function MusicList() {
   const [musicFiles, setMusicFiles] = useState([]);
   const [sound, setSound] = useState();
   const [sendToFavourite, setFavouriteIconForItem] = useState(false);
+  const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
+  const [songPaused, setSongPaused] = useState(false);
+
+  const navigation = useNavigation();
 
   const {
     isPlaying,
@@ -25,46 +32,46 @@ export default function MusicList() {
     setSelectedSongIndex,
     selectedSongIndex,
     setCurrentSound,
+    setCurrentSongName,
   } = usePlayback();
 
   const playMusic = async (music) => {
-    setSelectedSongIndex(music.id);
+    if (isPlaying && music.id === selectedSongIndex) {
+      // Navigate to the playing screen
+      navigation.navigate("Playing Song Screen", {
+        music,
+      });
+    } else {
+      setSelectedSongIndex(music.id);
 
-    if (currentSound) {
-      try {
-        const status = await currentSound.getStatusAsync();
-        if (status.isLoaded && status.isPlaying) {
-          await currentSound.stopAsync();
-          setIsPlaying(false);
+      if (currentSound) {
+        try {
+          const status = await currentSound.getStatusAsync();
+          if (status.isLoaded && status.isPlaying) {
+            // Stop the current sound
+            await currentSound.stopAsync();
+            setIsPlaying(false);
+          }
+        } catch (error) {
+          console.error("Error stopping current sound:", error);
         }
-      } catch (error) {
-        console.error("Error stopping current sound:", error);
       }
-    }
 
-    const soundObject = new Audio.Sound();
+      // Load and play the selected music
+      const soundObject = new Audio.Sound();
 
-    try {
-      await soundObject.loadAsync({ uri: music.uri });
-      await soundObject.playAsync();
-      setCurrentSound(soundObject);
-      setIsPlaying(true);
-    } catch (error) {
-      console.error("Error playing music:", error);
-    }
-  };
-
-  // pause current playing music
-  const pauseMusic = async () => {
-    if (currentSound) {
       try {
-        const status = await currentSound.getStatusAsync();
-        if (status.isLoaded && status.isPlaying) {
-          await currentSound.pauseAsync();
-          setIsPlaying(false);
-        }
+        setIsPlaying(true);
+        setCurrentSongName(music.filename);
+        setCurrentSound(soundObject);
+
+        // Load the selected music asynchronously
+        await soundObject.loadAsync({ uri: music.uri });
+
+        // Play the music immediately after loading
+        await soundObject.playAsync();
       } catch (error) {
-        console.error("Error stopping current sound:", error);
+        console.error("Error playing music:", error);
       }
     }
   };
@@ -74,6 +81,8 @@ export default function MusicList() {
     const getMusic = async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status === "granted") {
+        const rootDirectory = "file:///";
+
         const media = await MediaLibrary.getAssetsAsync({
           mediaType: "audio",
         });
@@ -89,19 +98,22 @@ export default function MusicList() {
     // Toggle playback and control the audio based on the global state
     if (currentSound) {
       try {
-        const status = await currentSound.getStatusAsync();
-        if (status.isLoaded) {
-          if (status.isPlaying) {
-            await currentSound.pauseAsync();
-          } else {
-            await currentSound.playAsync();
-          }
-          setIsPlaying(!isPlaying);
+        if (isPlaying) {
+          // Pause the music immediately
+          await currentSound.pauseAsync();
+        } else {
+          // Start playing the music immediately
+          await currentSound.playAsync();
         }
+        setIsPlaying(!isPlaying);
       } catch (error) {
         console.error("Error handling play/pause:", error);
       }
     }
+  };
+
+  const openBottomSheet = () => {
+    setBottomSheetVisible(true);
   };
 
   return (
@@ -124,7 +136,7 @@ export default function MusicList() {
             <TouchableOpacity
               onPress={() => playMusic(item)}
               style={styles.musicNameWrapper}
-              onLongPress={() => console.log("Long press")}
+              onLongPress={openBottomSheet}
               activeOpacity={0.6}
             >
               <Text
@@ -132,7 +144,9 @@ export default function MusicList() {
                   styles.songName,
                   {
                     color:
-                      item.id === selectedSongIndex ? "#0bd967" : "#f2f3f5",
+                      item.id === selectedSongIndex && currentSound
+                        ? "#0bd967"
+                        : "#f2f3f5",
                   },
                 ]}
               >
@@ -168,19 +182,11 @@ export default function MusicList() {
                 onPress={togglePlayback}
                 style={styles.pauseBtn}
               >
-                {currentSound && isPlaying ? (
-                  <MaterialCommunityIcons
-                    name="pause"
-                    size={24}
-                    color="#0bd967"
-                  />
-                ) : (
-                  <MaterialCommunityIcons
-                    name="play"
-                    size={24}
-                    color="#0bd967"
-                  />
-                )}
+                <MaterialCommunityIcons
+                  name={isPlaying ? "pause" : "play"}
+                  size={24}
+                  color="#0bd967"
+                />
               </TouchableOpacity>
             )}
           </View>
@@ -188,7 +194,10 @@ export default function MusicList() {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* <Player /> */}
+      <BottonSheet
+        visible={bottomSheetVisible}
+        onRequestClose={() => setBottomSheetVisible(false)}
+      />
     </View>
   );
 }

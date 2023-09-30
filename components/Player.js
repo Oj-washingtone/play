@@ -9,28 +9,33 @@ export default function Player() {
     isPlaying,
     setIsPlaying,
     currentSound,
+    currentSongName,
     setSelectedSongIndex,
     selectedSongIndex,
   } = usePlayback();
+
+  // console.log("currentSound", currentSound);
 
   const [repeat, setRepeat] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
+  const [songPaused, setSongPaused] = useState(false);
 
   const togglePlayback = async () => {
     // Toggle playback and control the audio based on the global state
     if (currentSound) {
       try {
-        const status = await currentSound.getStatusAsync();
-        if (status.isLoaded) {
-          if (status.isPlaying) {
-            await currentSound.pauseAsync();
-          } else {
-            await currentSound.playAsync();
-          }
-          setIsPlaying(!isPlaying);
+        if (isPlaying) {
+          // Pause the music immediately
+          await currentSound.pauseAsync();
+          setSongPaused(true);
+        } else {
+          // Start playing the music immediately
+          await currentSound.playAsync();
+          setSongPaused(false);
         }
+        setIsPlaying(!isPlaying);
       } catch (error) {
         console.error("Error handling play/pause:", error);
       }
@@ -64,30 +69,63 @@ export default function Player() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const backwards5seconds = async () => {
+    if (currentSound) {
+      try {
+        const status = await currentSound.getStatusAsync();
+        if (status.isLoaded) {
+          await currentSound.setPositionAsync(
+            status.positionMillis - 5000,
+            false
+          );
+        }
+      } catch (error) {
+        console.error("Error handling back 5 seconds:", error);
+      }
+    }
+  };
+
+  const forward5seconds = async () => {
+    if (currentSound) {
+      try {
+        const status = await currentSound.getStatusAsync();
+        if (status.isLoaded) {
+          await currentSound.setPositionAsync(
+            status.positionMillis + 5000,
+            false
+          );
+        }
+      } catch (error) {
+        console.error("Error handling forward 5 seconds:", error);
+      }
+    }
+  };
+
   return (
     <View style={styles.playing}>
-      <View style={styles.progress}>
-        <Text style={{ color: "#fff" }}>{formatTime(playbackPosition)}</Text>
-        <View
-          style={{
-            height: 2,
-            backgroundColor: "#0bd967",
-            width: `${(playbackPosition / playbackDuration) * 100}%`,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 70,
-          }}
-        />
-      </View>
+      {currentSound && (
+        <View style={styles.progress}>
+          <Text style={{ color: "#fff" }}>{formatTime(playbackPosition)}</Text>
+          <View
+            style={{
+              height: 2,
+              backgroundColor: "#0bd967",
+              width: `${(playbackPosition / playbackDuration) * 100}%`,
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 70,
+            }}
+          />
+        </View>
+      )}
+
       <View style={styles.playingInfo}>
-        <Text style={{ color: "#fff", textAlign: "center", marginBottom: 10 }}>
-          Song name
-        </Text>
+        <Text style={styles.songNameText}>{currentSongName}</Text>
       </View>
       <View style={styles.musicActions}>
         <View style={styles.audioIconWrapper}>
-          {isPlaying ? (
+          {isPlaying && currentSound ? (
             <Image
               source={require("../assets/soundwave/wave.gif")}
               style={{ width: 40, height: 40 }}
@@ -109,7 +147,7 @@ export default function Player() {
               color="#fff"
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={backwards5seconds}>
             <MaterialCommunityIcons
               name="skip-backward"
               size={24}
@@ -127,7 +165,7 @@ export default function Player() {
               color="#fff"
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={forward5seconds}>
             <MaterialCommunityIcons
               name="skip-forward"
               size={24}
@@ -273,7 +311,7 @@ const styles = StyleSheet.create({
 
   songName: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: 10,
     fontWeight: "bold",
   },
 
@@ -284,5 +322,13 @@ const styles = StyleSheet.create({
 
   progress: {
     width: "84%",
+  },
+
+  songNameText: {
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 10,
+    width: "70%",
+    fontSize: 12,
   },
 });

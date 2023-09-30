@@ -7,6 +7,8 @@ export function PlaybackProvider({ children }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSound, setCurrentSound] = useState(null);
   const [selectedSongIndex, setSelectedSongIndex] = useState(null);
+  const [currentSongName, setCurrentSongName] = useState(null);
+  const [musicListManager, setMusicListInManager] = useState([]);
 
   // Add other playback-related state and functions as needed
 
@@ -19,6 +21,8 @@ export function PlaybackProvider({ children }) {
         setCurrentSound,
         selectedSongIndex,
         setSelectedSongIndex,
+        currentSongName,
+        setCurrentSongName,
         // Add other playback-related state and functions as needed
       }}
     >

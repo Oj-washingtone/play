@@ -13,11 +13,11 @@ import { MaterialCommunityIcons } from "react-native-vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
 
-import Main from "./navigation/MainNavigation";
+import AppStack from "./navigation/StackNavigation";
 import Header from "./components/Header";
 import Player from "./components/Player";
 import PermissionModal from "./components/PermissionsModal";
-import { PlaybackProvider } from "./utils/PlaybackContext";
+import { PlaybackProvider, usePlayback } from "./utils/PlaybackContext";
 
 export default function App() {
   NavigationBar.setButtonStyleAsync("dark");
@@ -57,7 +57,7 @@ export default function App() {
         >
           <Header />
           <View style={styles.content}>
-            <Main />
+            <AppStack />
           </View>
 
           {/* <MusicList /> */}
@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     width: "100%",
+    backgroundColor: "#000",
   },
 
   content: {
