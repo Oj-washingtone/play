@@ -110,6 +110,7 @@ export default function Player() {
             style={{
               height: 2,
               backgroundColor: "#0bd967",
+              // start player from width of 0 when else
               width: `${(playbackPosition / playbackDuration) * 100}%`,
               position: "absolute",
               top: 0,

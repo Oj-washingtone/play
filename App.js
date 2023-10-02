@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import * as NavigationBar from "expo-navigation-bar";
-import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
   Text,
@@ -9,14 +8,9 @@ import {
   Alert,
   Modal,
 } from "react-native";
-import { MaterialCommunityIcons } from "react-native-vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
 
 import AppStack from "./navigation/StackNavigation";
-import Header from "./components/Header";
-import Player from "./components/Player";
-import PermissionModal from "./components/PermissionsModal";
 import { PlaybackProvider, usePlayback } from "./utils/PlaybackContext";
 
 export default function App() {
@@ -40,37 +34,9 @@ export default function App() {
     }
   }, []);
 
-  // try {
-
-  // }
-
   return (
     <PlaybackProvider>
-      <View style={styles.container}>
-        <StatusBar style="auto" />
-        <LinearGradient
-          // Button Linear Gradient
-          colors={["#261f1f", "#000", "#261f1f"]}
-          style={styles.container}
-          start={{ x: 1, y: 1 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Header />
-          <View style={styles.content}>
-            <AppStack />
-          </View>
-
-          {/* <MusicList /> */}
-        </LinearGradient>
-        <Player />
-
-        {/* {permission.granted && (
-        <PermissionModal
-          visible={isPermissionModalVisible}
-          onRequestClose={() => setIsPermissionModalVisible(false)}
-        />
-      )} */}
-      </View>
+      <AppStack />
     </PlaybackProvider>
   );
 }

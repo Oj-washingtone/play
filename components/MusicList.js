@@ -35,6 +35,8 @@ export default function MusicList() {
     setCurrentSongName,
   } = usePlayback();
 
+  const soundObject = new Audio.Sound();
+
   const playMusic = async (music) => {
     if (isPlaying && music.id === selectedSongIndex) {
       // Navigate to the playing screen
@@ -44,22 +46,16 @@ export default function MusicList() {
     } else {
       setSelectedSongIndex(music.id);
 
-      if (currentSound) {
+      if (isPlaying) {
         try {
-          const status = await currentSound.getStatusAsync();
-          if (status.isLoaded && status.isPlaying) {
-            // Stop the current sound
-            await currentSound.stopAsync();
-            setIsPlaying(false);
-          }
+          setIsPlaying(false);
+          await currentSound.stopAsync();
         } catch (error) {
           console.error("Error stopping current sound:", error);
         }
       }
 
       // Load and play the selected music
-      const soundObject = new Audio.Sound();
-
       try {
         setIsPlaying(true);
         setCurrentSongName(music.filename);
@@ -95,14 +91,13 @@ export default function MusicList() {
   }, []);
 
   const togglePlayback = async () => {
-    // Toggle playback and control the audio based on the global state
     if (currentSound) {
       try {
         if (isPlaying) {
-          // Pause the music immediately
+          // Pause the music
           await currentSound.pauseAsync();
         } else {
-          // Start playing the music immediately
+          // Start playing the music
           await currentSound.playAsync();
         }
         setIsPlaying(!isPlaying);
