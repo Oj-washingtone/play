@@ -6,8 +6,8 @@ Here i was just trying to be creative a little, creating my own music player.
 
 ### Home Screen
 
-![Alt text](./screenshots/1.jpeg)
+![Home Screen](./screenshots/2.jpeg)
 
 ### Music playing
 
-![Alt text](./screenshots/2.jpeg)
+![Music Playing Screen](./screenshots/1.jpeg)
